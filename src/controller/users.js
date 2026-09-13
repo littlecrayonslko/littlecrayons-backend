@@ -29,6 +29,7 @@ export const loginAdmin = async (req, res, next) => {
         message: 'Invalid admin credentials.',
       });
     }
+    
 
     const admin = rows[0];
 
