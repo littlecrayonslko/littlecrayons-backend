@@ -20,6 +20,8 @@ import {
   deleteBlog,
 } from '../controller/blog.js';
 
+import { loginAdmin } from '../controller/users.js';
+
 const router = Router();
 
 // ================= GALLERY ROUTES =================
@@ -35,5 +37,7 @@ router.post('/blogs', uploadSingleImage, createBlog);
 router.get('/blogs', getAllBlogs);
 router.get('/blogs/:slug', getBlogBySlug);
 router.delete('/blogs/:id', deleteBlog);
+
+router.post('/admin/login', loginAdmin);
 
 export default router;
