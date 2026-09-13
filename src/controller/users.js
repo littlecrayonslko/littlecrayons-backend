@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import {pool} from '../config/db'
+import { pool } from '../config/db.js';
 
 // POST /api/auth/login
 export const loginAdmin = async (req, res, next) => {
