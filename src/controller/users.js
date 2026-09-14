@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { pool } from '../config/db.js';
 
 // POST /api/auth/login
@@ -29,7 +29,7 @@ export const loginAdmin = async (req, res, next) => {
         message: 'Invalid admin credentials.',
       });
     }
-    
+
 
     const admin = rows[0];
 
