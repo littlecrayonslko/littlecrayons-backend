@@ -20,7 +20,7 @@ import {
   deleteBlog,
 } from '../controller/blog.js';
 
-import { loginAdmin } from '../controller/users.js';
+import { loginAdmin , registerAdmin } from '../controller/users.js';
 
 const router = Router();
 
@@ -39,5 +39,6 @@ router.get('/blogs/:slug', getBlogBySlug);
 router.delete('/blogs/:id', deleteBlog);
 
 router.post('/admin/login', loginAdmin);
+router.post('/admin/register', registerAdmin);
 
 export default router;
