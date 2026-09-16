@@ -31,8 +31,24 @@ export const uploadSingleImage = (req, res, next) => {
   });
 };
 
-export const uploadTwoImages = multer({
+// ARRAY UPLOAD INSTANCE
+const uploadArray = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit per file
   fileFilter,
 }).array('images', 2);
+
+// WRAPPER FUNCTION (Added error handling)
+export const uploadTwoImages = (req, res, next) => {
+  uploadArray(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ success: false, message: 'File too large. Maximum size is 5MB.' });
+      }
+      return res.status(400).json({ success: false, message: `Multer Error: ${err.message}` });
+    } else if (err) {
+      return res.status(400).json({ success: false, message: err.message });
+    }
+    next();
+  });
+};
