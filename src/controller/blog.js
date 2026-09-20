@@ -14,11 +14,13 @@ const generateSlug = (title) => {
 // POST /api/blogs - Create a new blog post
 export const createBlog = async (req, res, next) => {
   try {
-    const { title, body } = req.body;
+    const { title, body, content } = req.body;
     const file = req.file;
 
-    // 1. Validate the 3 required fields
-    if (!title || !body) {
+    const blogText = (body || content || '').trim();
+
+    // 1. Validate required fields
+    if (!title || !blogText) {
       return res.status(400).json({
         success: false,
         message: 'Title and body are required fields.',
@@ -42,7 +44,7 @@ export const createBlog = async (req, res, next) => {
       slug = `${slug}-${Date.now().toString().slice(-4)}`;
     }
 
-    // 4. Save into MySQL
+    // 4. Save into MySQL (Column name is 'content')
     const sql = `
       INSERT INTO blogs (title, slug, content, cover_image_url, cloudinary_public_id)
       VALUES (?, ?, ?, ?, ?)
@@ -51,7 +53,7 @@ export const createBlog = async (req, res, next) => {
     const [result] = await pool.query(sql, [
       title.trim(),
       slug,
-      body.trim(),
+      blogText,
       url,
       publicId,
     ]);
@@ -63,6 +65,8 @@ export const createBlog = async (req, res, next) => {
         id: result.insertId,
         title: title.trim(),
         slug,
+        body: blogText,
+        content: blogText,
         cover_image_url: url,
       },
     });
@@ -74,8 +78,16 @@ export const createBlog = async (req, res, next) => {
 // GET /api/blogs - Get all published blogs
 export const getAllBlogs = async (req, res, next) => {
   try {
+    // Added 'content AS body' and 'content' so frontend gets both keys directly
     const sql = `
-      SELECT id, title, slug, cover_image_url, created_at 
+      SELECT 
+        id, 
+        title, 
+        slug, 
+        content AS body, 
+        content, 
+        cover_image_url, 
+        created_at 
       FROM blogs 
       WHERE is_published = TRUE 
       ORDER BY created_at DESC
@@ -98,7 +110,16 @@ export const getBlogBySlug = async (req, res, next) => {
     const { slug } = req.params;
 
     const [rows] = await pool.query(
-      'SELECT id, title, slug, content, cover_image_url, created_at FROM blogs WHERE slug = ?',
+      `SELECT 
+        id, 
+        title, 
+        slug, 
+        content AS body, 
+        content, 
+        cover_image_url, 
+        created_at 
+       FROM blogs 
+       WHERE slug = ?`,
       [slug]
     );
 
