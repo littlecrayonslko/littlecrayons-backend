@@ -1,6 +1,8 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken'; // Default import fix
 import { pool } from '../config/db.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
 export const registerAdmin = async (req, res, next) => {
   try {
