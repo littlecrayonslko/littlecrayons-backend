@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken'; // Default import fix
 import { pool } from '../config/db.js';
-import { jwt } from 'jsonwebtoken';
 
 export const registerAdmin = async (req, res, next) => {
   try {
@@ -13,10 +13,13 @@ export const registerAdmin = async (req, res, next) => {
       });
     }
 
+    const cleanUsername = username.trim();
+    const cleanEmail = email ? email.trim().toLowerCase() : `${cleanUsername}@admin.com`;
+
     // Check if user already exists
     const [existing] = await pool.query(
       'SELECT id FROM users WHERE username = ? OR email = ? LIMIT 1',
-      [username.trim(), email ? email.trim() : '']
+      [cleanUsername, cleanEmail]
     );
 
     if (existing.length > 0) {
@@ -35,8 +38,8 @@ export const registerAdmin = async (req, res, next) => {
     `;
 
     const [result] = await pool.query(insertSql, [
-      username.trim(),
-      email ? email.trim() : `${username.trim()}@admin.com`,
+      cleanUsername,
+      cleanEmail,
       password_hash,
     ]);
 
@@ -52,7 +55,8 @@ export const registerAdmin = async (req, res, next) => {
 
 export const loginAdmin = async (req, res, next) => {
   try {
-    const { identifier, password } = req.body;
+    const identifier = req.body.identifier || req.body.id || req.body.username || req.body.email;
+    const { password } = req.body;
 
     if (!identifier || !password) {
       return res.status(400).json({
@@ -95,7 +99,6 @@ export const loginAdmin = async (req, res, next) => {
       });
     }
 
-    // Normal JWT payload
     const token = jwt.sign(
       {
         id: admin.id,
