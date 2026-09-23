@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Fallback or explicit check to prevent crash
-const JWT_SECRET = process.env.JWT_SECRET || 'my_super_secure_default_secret_key_123';
+const JWT_TOKEN = process.env.JWT_TOKEN || 'my_super_secure_default_secret_key_123';
 
 export const registerAdmin = async (req, res, next) => {
   try {
