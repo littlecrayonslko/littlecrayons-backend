@@ -1,8 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { pool } from '../config/db.js';
+import { jwt } from 'jsonwebtoken';
 
-// ================= REGISTER / CREATE ADMIN =================
-// POST /api/admin/register
 export const registerAdmin = async (req, res, next) => {
   try {
     const { username, email, password } = req.body;
@@ -51,13 +50,9 @@ export const registerAdmin = async (req, res, next) => {
   }
 };
 
-// ================= LOGIN ADMIN =================
-// POST /api/admin/login
 export const loginAdmin = async (req, res, next) => {
   try {
-    // Body me id, username ya email kuch bhi aaye, accept karega
-    const identifier = req.body.id || req.body.username || req.body.email;
-    const { password } = req.body;
+    const { identifier, password } = req.body;
 
     if (!identifier || !password) {
       return res.status(400).json({
@@ -68,7 +63,6 @@ export const loginAdmin = async (req, res, next) => {
 
     const cleanId = identifier.toString().trim();
 
-    // Username, email, ya numeric ID teeno se match karega
     const sql = `
       SELECT id, username, email, password_hash, role, is_active
       FROM users
@@ -80,7 +74,7 @@ export const loginAdmin = async (req, res, next) => {
     if (rows.length === 0) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid admin credentials.',
+        message: 'Invalid credentials.',
       });
     }
 
@@ -89,7 +83,7 @@ export const loginAdmin = async (req, res, next) => {
     if (!admin.is_active) {
       return res.status(403).json({
         success: false,
-        message: 'Admin account is disabled.',
+        message: 'Account is disabled.',
       });
     }
 
@@ -97,13 +91,25 @@ export const loginAdmin = async (req, res, next) => {
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid admin credentials.',
+        message: 'Invalid credentials.',
       });
     }
 
+    // Normal JWT payload
+    const token = jwt.sign(
+      {
+        id: admin.id,
+        username: admin.username,
+        role: admin.role,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
     return res.status(200).json({
       success: true,
-      message: 'Login successful.',
+      message: 'Login successful',
+      token,
       user: {
         id: admin.id,
         username: admin.username,
