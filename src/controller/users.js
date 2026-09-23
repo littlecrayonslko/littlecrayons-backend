@@ -1,8 +1,11 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken'; // Default import fix
+import jwt from 'jsonwebtoken';
 import { pool } from '../config/db.js';
 import dotenv from 'dotenv';
 dotenv.config();
+
+// Fallback or explicit check to prevent crash
+const JWT_SECRET = process.env.JWT_SECRET || 'my_super_secure_default_secret_key_123';
 
 export const registerAdmin = async (req, res, next) => {
   try {
@@ -18,7 +21,6 @@ export const registerAdmin = async (req, res, next) => {
     const cleanUsername = username.trim();
     const cleanEmail = email ? email.trim().toLowerCase() : `${cleanUsername}@admin.com`;
 
-    // Check if user already exists
     const [existing] = await pool.query(
       'SELECT id FROM users WHERE username = ? OR email = ? LIMIT 1',
       [cleanUsername, cleanEmail]
@@ -101,13 +103,14 @@ export const loginAdmin = async (req, res, next) => {
       });
     }
 
+    // Use JWT_SECRET safely
     const token = jwt.sign(
       {
         id: admin.id,
         username: admin.username,
         role: admin.role,
       },
-      process.env.JWT_SECRET,
+      JWT_TOKEN,
       { expiresIn: '1d' }
     );
 
